@@ -3,58 +3,98 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Counties GeoJSON - Leaflet</title>
+  <title>LPKY County Affiliates</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    html,body,#map { height:100%; margin:0; padding:0; }
-    .info { font-family: Arial, sans-serif; font-size:13px; }
+    html, body { height: 100%; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+
+    /* Banner at top */
+    #banner {
+      width: 100%;
+      height: 60px;
+      background-color: #F8D000; /* Gold background for visibility */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px;
+      box-sizing: border-box;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      flex-wrap: wrap;
+      text-align: center;
+    }
+
+    #banner h1 {
+      margin: 0;
+      font-size: 1.5em;
+      color: #000;
+    }
+
+    #banner img {
+      height: 40px; /* Adjust as needed */
+    }
+
+    /* Map fills remaining space below banner */
+    #map { height: calc(100% - 60px); }
+
+    .info { font-size: 13px; }
+    
+    .popup-image {
+      max-width: 150px;
+      max-height: 150px;
+      display: block;
+      margin: 0 auto 4px auto;
+    }
   </style>
 </head>
 <body>
+  <!-- Banner -->
+  <div id="banner">
+    <a href="https://lpky.org/"><img src="Logos/StateLogo.png" alt="State Party Logo"></a>
+    <h1>County Affiliates</h1>
+  </div>
+
+  <!-- Map -->
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // create map
     const map = L.map('map').setView([37.8, -96], 5);
 
-    // basemap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 19
     }).addTo(map);
 
-    // counties layer
     const countiesLayer = L.geoJSON(null, {
       style: feature => {
         const affiliated = feature.properties && feature.properties.Affiliated;
         if (affiliated && affiliated.toLowerCase() === "yes") {
-          return {
-            color: '#000000',
-            weight: 1,
-            fillColor: 'gold',
-            fillOpacity: 0.6
-          };
+          return { color: '#000', weight: 1, fillColor: '#F8D000', fillOpacity: 0.6 };
         } else {
-          return {
-            color: '#000000',
-            weight: 1,
-            fillOpacity: 0.5,
-            fillColor: '#000000'
-          };
+          return { color: '#000', weight: 1, fillOpacity: 0.5, fillColor: '#000' };
         }
       },
       onEachFeature: (feature, layer) => {
         const affiliated = feature.properties && feature.properties.Affiliated;
         if (affiliated && affiliated.toLowerCase() === "yes") {
-          const name = (feature.properties.NAME || feature.properties.name || 'Unnamed');
+          const name = feature.properties.NAME || feature.properties.name || 'Unnamed';
           const chair = feature.properties.Chair || 'N/A';
-          const logo = feature.properties.Logo || 'N/A';
+          const vicechair = feature.properties.ViceChair || 'N/A';
+          const secretary = feature.properties.Secretary || 'N/A';
+          const treasurer = feature.properties.Treasurer || 'N/A';
+          const magisterial = feature.properties.Magisterial || 'N/A';
+          const contact = feature.properties.Contact || '#';
+          const logo = feature.properties.Logo || '';
 
           const popupContent = `
-            <img src = "${logo}" alt="County Affiliate Logo" class = 'popup-image'><br>
+            ${logo ? `<img src="${logo}" alt="County Affiliate Logo" class="popup-image">` : ''}
             <strong>${name}</strong><br>
-            Chair: ${chair}
+            Chair: ${chair}<br>
+            Vice Chair: ${vicechair}<br>
+            Secretary: ${secretary}<br>
+            Treasurer: ${treasurer}<br>
+            Magisterial: ${magisterial}<br>
+            <a href="${contact}">Contact</a>
           `;
 
           layer.bindPopup(popupContent);
@@ -62,7 +102,6 @@
       }
     }).addTo(map);
 
-    // load GeoJSON
     fetch('KyCounties.geojson')
       .then(resp => {
         if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
@@ -87,4 +126,3 @@
   </script>
 </body>
 </html>
-
